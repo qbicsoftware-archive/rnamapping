@@ -5,9 +5,12 @@ import json
 from os.path import join as pjoin
 from os.path import exists as pexists
 import glob
+import numpy as np
+import pandas as pd
 
 configfile: "config.json"
 workdir: config["var"]
+SNAKEDIR = config['src']
 
 try:
     VERSION = subprocess.check_output(
@@ -22,7 +25,6 @@ RESULT = config['result']
 LOGS = config['logs']
 REF = config['ref']
 ETC = config['etc']
-SNAKEDIR = config['src']
 
 def data(path):
     return os.path.join(DATA, path)
@@ -269,8 +271,8 @@ rule MergeAdapters:
     shell: "cat {input} > {output}"
 
 rule CutAdapt:
-    input: adapter= "MergeAdapters/merged.fasta"
-           fastq = lambda w: [data(p) for p in RUNS[(w['group'], w['prefix'])]]
+    input: adapter="MergeAdapters/merged.fasta",
+           fastq= lambda w: [data(p) for p in RUNS[(w['group'], w['prefix'])]]
     output:
        L="CutAdaptMerge/{group}___{prefix}_R1.fastq",
        R="CutAdaptMerge/{group}___{prefix}_R2.fastq"
@@ -306,7 +308,6 @@ rule CombineCounts:
                name=INPUT_FILES, result=RESULT)
     output: result("all_counts.csv")
     run:
-        import pandas as pd
         import re
 
         pattern = "HTSeqCounts_([0-9a-zA-Z_\- ]*).txt"
