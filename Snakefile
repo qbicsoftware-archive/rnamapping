@@ -77,7 +77,6 @@ if not os.path.exists(indexed_genome + '.fa'):
 
 INPUT_FILES = []
 for name in os.listdir(DATA):
-    print(name)
     if name.lower().endswith('.sha256sum'):
         continue
     if name.lower().endswith('.fastq'):
@@ -140,23 +139,24 @@ for group, df in DESIGN.groupby('group'):
 
 OUTPUT_FILES = []
 OUTPUT_FILES.extend(expand(result("fastqc/{name}"), name=INPUT_FILES))
-OUTPUT_FILES.extend(expand(result("FastQCcut_{name}.zip"), name=INPUT_FILES))
-OUTPUT_FILES.extend(expand(result("/HTSeqCounts_{name}.txt"), name=INPUT_FILES))
+#OUTPUT_FILES.extend(expand(result("FastQCcut_{name}.zip"), name=INPUT_FILES))
+#OUTPUT_FILES.extend(expand(result("/HTSeqCounts_{name}.txt"), name=INPUT_FILES))
 
 
-OUTPUT_FILES.extend(expand("Summary/NumReads/Original/{name}.txt", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("Summary/NumReads/PreFilter/{name}.txt", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("{result}/FastQC_{name}.zip", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("{result}/FastQCcut_{name}.zip", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("Summary/NumReads/CutAdaptMerge/{name}.txt", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("{result}/HTSeqCounts_{name}.txt", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("TopHat2/{name}/accepted_hits.bai", name=INPUT_FILES, result=RESULT))
-OUTPUT_FILES.extend(expand("Summary/MappingStats/{name}.txt", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("Summary/NumReads/Original/{name}.txt", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("Summary/NumReads/PreFilter/{name}.txt", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("{result}/FastQC_{name}.zip", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("{result}/FastQCcut_{name}.zip", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("Summary/NumReads/CutAdaptMerge/{name}.txt", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("{result}/HTSeqCounts_{name}.txt", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("TopHat2/{name}/accepted_hits.bai", name=INPUT_FILES, result=RESULT))
+#OUTPUT_FILES.extend(expand("Summary/MappingStats/{name}.txt", name=INPUT_FILES, result=RESULT))
 #OUTPUT_FILES.append("checksums.ok")
-OUTPUT_FILES.append(result('all_counts.csv'))
+#OUTPUT_FILES.append(result('all_counts.csv'))
+
 
 rule all:
-    input: OUTPUT_FILES, "checksums.ok"
+    input: result("all_counts.csv"), OUTPUT_FILES, "checksums.ok"
 
 rule checksums:
     output: "checksums.ok"
@@ -271,31 +271,35 @@ rule MergeAdapters:
     shell: "cat {input} > {output}"
 
 rule CutAdapt:
-    input: adapter="MergeAdapters/merged.fasta",
-           fastq= lambda w: [data(p) for p in RUNS[(w['group'], w['prefix'])]]
-    output:
-       L="CutAdaptMerge/{group}___{prefix}_R1.fastq",
-       R="CutAdaptMerge/{group}___{prefix}_R2.fastq"
+    input: 
+        adapter="MergeAdapters/merged.fasta",
+        fastq=lambda w: [data(p) for p in RUNS[(w['group'], w['prefix'])]]
+    output: 
+        L="CutAdaptMerge/{group}___{prefix}_R1.fastq",
+        R="CutAdaptMerge/{group}___{prefix}_R2.fastq"
     run:
-        #with open(str(input[0])) as f:
-        #    skip = not bool(f.read(1))
-        #if skip:
-        #    os.symlink(os.path.abspath(str(input[1])), str(output))
-        #else:
-        shell('cutadapt --discard-trimmed -a file:{input[0]} -o ' + output['L'] + '-p ' + output['R'] + ' '.join(input['fastq']))
+        with open(input['adapter']) as f:
+            skip = not bool(f.read(1))
+        if skip:
+            os.symlink(os.path.abspath(str(input['adapter'])), str(output))
+        else:
+            shell('cutadapt --discard-trimmed -a file:' + input['adapter'] + ' -o ' + output['L'] + ' -p ' + output['R'] + ' ' + ' '.join(input['fastq']))
 
 rule TopHat2:
-    input: lambda w: ['CutAdaptMerge/' + p for p in RUNS[(w['group'], w['prefix'])]]
+    #input: lambda w: ['CutAdaptMerge/' + p for p in RUNS[(w['group'], w['prefix'])]]
+    input: 
+        L="CutAdaptMerge/{group}___{prefix}_R1.fastq",
+        R="CutAdaptMerge/{group}___{prefix}_R2.fastq"
     output: "TopHat2/{group}___{prefix}"
     run:
         gtf = parameters['gtf']
         genome = parameters['indexed_genome']
-        shell('tophat --no-coverage-search -o {output} -p 2 -G %s %s {input}'
-              % (gtf, fasta))
+        shell('tophat --no-coverage-search -o {output}'+ ' -p 2 -G %s %s %s %s'
+              % (gtf, genome, input['L'], input['R']))
 
 rule HTSeqCounts:
-    input: "TopHat2/{name}"
-    output: result("HTSeqCounts_{name}.txt")
+    input: "TopHat2/{group}___{prefix}"
+    output: result("HTSeqCounts_{group}___{prefix}.txt")
     run:
         sam_command = "samtools view {input}/accepted_hits.bam"
         htseq = ("htseq-count -i {gff_attribute} -t {feature_type} "
@@ -303,9 +307,7 @@ rule HTSeqCounts:
         shell("%s | %s > {output}" % (sam_command, htseq))
 
 rule CombineCounts:
-    input:
-        expand("{result}/HTSeqCounts_{name}.txt",
-               name=INPUT_FILES, result=RESULT)
+    input: expand(result("HTSeqCounts_{group}___{prefix}.txt").format(group=key[0], prefix=key[1]) for key in RUNS)
     output: result("all_counts.csv")
     run:
         import re
