@@ -110,10 +110,11 @@ DESIGN = pd.read_csv(etc('GROUPS'), sep='\t')
 
 RUNS = {}
 for group, df in DESIGN.groupby('group'):
-    if '_R1' in df['file'][0]:
+    print(df['file'])
+    if '_R1' in df['file'][0] or '_R2' in df['file'][0]:
         first_id = '_R1'
         second_id = '_R2'
-    elif '_1' in df['file'][0]:
+    elif '_1' in df['file'][0] or '_2' in df['file'][0]:
         first_id = '_1'
         second_id = '_2'
     else:
