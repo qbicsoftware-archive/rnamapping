@@ -83,13 +83,11 @@ for name in os.listdir(DATA):
         if not name.endswith('.fastq'):
             print("Extension fastq is case sensitive.", file=sys.stderr)
             exit(1)
-        file_extension = 'fastq'
         INPUT_FILES.append(os.path.basename(name)[:-6])
     elif name.lower().endswith('.fastq.gz'):
         if not name.endswith('.fastq.gz'):
             print("Extension fastq is case sensitive.", file=sys.stderr)
             exit(1)
-        file_extension = 'fastq.gz'
         INPUT_FILES.append(os.path.basename(name)[:-len('.fastq.gz')])
     elif name.lower().endswith('.bam'):
         if not name.endswith('.bam'):
@@ -200,13 +198,8 @@ rule PreFilterReads:
             raise ValueError("More than 10% of reads were filtered in "
                 "PreFilterReads. This probably indicates a bug.")
 
-rule FastQC:
-    input: "PreFilterReads/{name}.fastq"
-    output: "FastQC/{name}"
-    shell: 'mkdir -p {output} && (fastqc {input} -o {output} || (rm -rf {output} && exit 1))'
-
 rule fastqc:
-    input: "PreFilterReads/{name}." + file_extension
+    input: "PreFilterReads/{name}.fastq"
     output: result("fastqc/{name}")
     threads: 1
     run:
