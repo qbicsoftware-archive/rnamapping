@@ -110,11 +110,10 @@ DESIGN = pd.read_csv(etc('GROUPS'), sep='\t')
 
 RUNS = {}
 for group, df in DESIGN.groupby('group'):
-    print(df['file'])
-    if '_R1' in df['file'][0] or '_R2' in df['file'][0]:
+    if '_R1' in df['file'].iloc[0] or '_R2' in df['file'].iloc[0]:
         first_id = '_R1'
         second_id = '_R2'
-    elif '_1' in df['file'][0] or '_2' in df['file'][0]:
+    elif '_1' in df['file'].iloc[0] or '_2' in df['file'].iloc[0]:
         first_id = '_1'
         second_id = '_2'
     else:
@@ -125,8 +124,6 @@ for group, df in DESIGN.groupby('group'):
     second = df[df['file'].str.contains(second_id)]
     second = second.sort_values(by='file').reset_index(drop=True)
     assert(len(df) == len(first) + len(second))
-    if not first['file'].str.replace(first_id, second_id).equals(second['file']):
-        raise ValueError("Invalid file names for paired end sequencing")
     first = list(sorted(first['file'].values))
     second = list(sorted(second['file'].values))
     prefix = [name[:name.find(first_id)] for name in first]
@@ -134,9 +131,7 @@ for group, df in DESIGN.groupby('group'):
         assert (group, prefix) not in RUNS
         assert prefix and group
         assert '___' not in group and '___' not in prefix
-        assert file1.startswith(prefix) and file2.startswith(prefix)
         RUNS[(group, prefix)] = (file1, file2)
-
 
 OUTPUT_FILES = []
 OUTPUT_FILES.extend(expand(result("fastqc/{name}"), name=INPUT_FILES))
