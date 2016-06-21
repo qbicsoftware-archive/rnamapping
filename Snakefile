@@ -271,7 +271,8 @@ rule CutAdapt:
         with open(input['adapter']) as f:
             skip = not bool(f.read(1))
         if skip:
-            os.symlink(os.path.abspath(str(input['adapter'])), str(output))
+            os.symlink(os.path.abspath(str(input['fastq'][0])), str(output['L']))
+            os.symlink(os.path.abspath(str(input['fastq'][1])), str(output['R']))
         else:
             shell('cutadapt --discard-trimmed -a file:' + input['adapter'] + ' -o ' + output['L'] + ' -p ' + output['R'] + ' ' + ' '.join(input['fastq']))
 
