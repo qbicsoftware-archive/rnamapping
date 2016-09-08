@@ -9,7 +9,7 @@
 
 set -e
 
-module load bio/fastqc/0.10
+module load qbic/fastqc/0.11.4
 module load qbic/anaconda
 module load qbic/htseq/0.6.1p2
 module load qbic/tophat

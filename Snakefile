@@ -207,7 +207,7 @@ rule fastqc:
             os.mkdir(str(output))
         except Exception:
             pass
-        shell("fastqc {input} -o {output}")
+        shell("fastqc {input} -o {output} --extract")
 
 rule FastQCcut:
     input: "CutAdaptMerge/{name}.fastq"
@@ -218,7 +218,7 @@ rule FastQCcut:
             os.mkdir(str(output))
         except Exception:
             pass
-        shell("fastqc {input} -o {output}")
+        shell("fastqc {input} -o {output} --extract")
 
 rule Overrepresented:
     input: result("fastqc/{name}")
