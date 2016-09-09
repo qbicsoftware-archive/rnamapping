@@ -12,6 +12,7 @@ set -e
 module load qbic/fastqc/0.11.4
 module load qbic/anaconda
 module load qbic/htseq/0.6.1p2
+module load qbic/bowtie2/2.2.3
 module load qbic/tophat
 module load bio/samtools/1.2
 
