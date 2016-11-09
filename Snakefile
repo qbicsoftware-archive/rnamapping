@@ -12,6 +12,8 @@ configfile: "config.json"
 workdir: config["var"]
 SNAKEDIR = config['src']
 
+#test 
+
 try:
     VERSION = subprocess.check_output(
         ['git', 'describe', '--tags', '--always', '--dirty'],
