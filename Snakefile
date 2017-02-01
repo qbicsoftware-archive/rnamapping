@@ -57,12 +57,13 @@ default_params = {
     "overlap_mode": 'union',
     "gff_attribute": 'gene_id',
     "feature_type": 'exon',
+    "order": "name"
 }
 default_params.update(parameters)
 parameters = default_params
 
 for key in ['gtf', 'stranded', 'overlap_mode', 'indexed_genome',
-            'gff_attribute', 'feature_type']:
+            'gff_attribute', 'feature_type','order']:
     if key not in parameters:
         print("Missing parameter %s in etc/params.json" % key, file=sys.stderr)
         exit(1)
