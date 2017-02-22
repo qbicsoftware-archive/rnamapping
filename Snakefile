@@ -139,6 +139,9 @@ OUTPUT_FILES.extend(expand("Summary/NumReads/PreFilter/{name}.txt", name=INPUT_F
 OUTPUT_FILES.extend(expand("Summary/NumReads/CutAdaptMerge/{group}___{prefix}_R1.txt".format(group=key[0], prefix=key[1]) for key in RUNS.keys()))
 OUTPUT_FILES.extend(expand("Summary/NumReads/CutAdaptMerge/{group}___{prefix}_R2.txt".format(group=key[0], prefix=key[1]) for key in RUNS.keys()))
 OUTPUT_FILES.extend(expand("Summary/MappingStats/{group}___{prefix}.txt".format(group=key[0], prefix=key[1]) for key in RUNS.keys()))
+OUTPUT_FILES.extend(expand("fastqccut/{group}___{prefix}_R1".format(group=key[0], prefix=key[1]) for key in RUNS.keys()))
+OUTPUT_FILES.extend(expand("fastqccut/{group}___{prefix}_R2".format(group=key[0], prefix=key[1]) for key in RUNS.keys()))
+
 
 rule all:
     input: result("all_counts.csv"), OUTPUT_FILES, "checksums.ok"
@@ -200,9 +203,20 @@ rule fastqc:
             pass
         shell("fastqc {input} -o {output} --extract")
 
-rule FastQCcut:
-    input: "CutAdaptMerge/{name}.fastq"
-    output: result("fastqccut/{name}")
+rule FastQCcut_R1:
+    input: "CutAdaptMerge/{group}___{prefix}_R1.fastq"
+    output: "fastqccut/{group}___{prefix}_R1"
+    threads: 1
+    run:
+        try:
+            os.mkdir(str(output))
+        except Exception:
+            pass
+        shell("fastqc {input} -o {output} --extract")
+
+rule FastQCcut_R2:
+    input: "CutAdaptMerge/{group}___{prefix}_R2.fastq"
+    output: "fastqccut/{group}___{prefix}_R2"
     threads: 1
     run:
         try:
