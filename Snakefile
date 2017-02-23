@@ -272,7 +272,7 @@ rule subset_Adapters:
 rule CutAdapt:
     input: 
         adapter="MergeAdapters/merged.subset.fasta",
-        fastq=lambda w: ['PreFilterReads/' + p for p in RUNS[(w['group'], w['prefix'])]]
+        fastq=lambda w: sorted(['PreFilterReads/' + p.replace('.gz', '') for p in RUNS[(w['group'], w['prefix'])]])
         #fastq=lambda w: [data(p) for p in RUNS[(w['group'], w['prefix'])]]
     output: 
         L="CutAdaptMerge/{group}___{prefix}_R1.fastq",
