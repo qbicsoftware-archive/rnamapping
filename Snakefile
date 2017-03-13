@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import json
+import shutil
 from os.path import join as pjoin
 from os.path import exists as pexists
 import glob
@@ -45,6 +46,7 @@ def etc(path):
 try:
     with open(etc("params.json")) as f:
         parameters = json.load(f)
+    shutil.copy(etc("params.json"), log("params.json"))
 except OSError as e:
     print("Could not read parameter file: " + str(e), file=sys.stderr)
     sys.exit(1)
