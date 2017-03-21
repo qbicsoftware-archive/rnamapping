@@ -304,7 +304,10 @@ rule HTSeqCounts:
     input: "TopHat2/{group}___{prefix}"
     output: result("HTSeqCounts_{group}___{prefix}.txt")
     run:
-        sam_command = "samtools view {input}/accepted_hits.bam"
+        if parameters['order'] == 'name':
+             sam_command = "samtools sort -on {input}/accepted_hits.bam - | samtools view -"
+        else:
+             sam_command = "samtools view {input}/accepted_hits.bam"
         htseq = ("htseq-count -i {gff_attribute} -t {feature_type} "
                  "-m {overlap_mode} -s {stranded} -r {order} - {gtf}").format(**parameters)
         shell("%s | %s > {output}" % (sam_command, htseq))
