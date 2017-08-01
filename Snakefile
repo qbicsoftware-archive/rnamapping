@@ -168,6 +168,7 @@ rule LinkUncompressed:
         """
         mkdir -p fastq
         ln -s {input} {output}
+        sleep 60
         touch --no-dereference {output}
         """
 
