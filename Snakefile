@@ -165,7 +165,7 @@ rule LinkUncompressed:
     input: data("{name}.fastq")
     output: "fastq/{name}.fastq"
     run: 
-        shell("ln -s {input} {output}"
+        shell("ln -s {input} {output} "
               "touch --no-dereference {output}") 
 
 rule Uncompress:
