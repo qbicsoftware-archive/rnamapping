@@ -164,7 +164,9 @@ rule checksums:
 rule LinkUncompressed:
     input: data("{name}.fastq")
     output: "fastq/{name}.fastq"
-    shell: "ln -s {input} {output}"
+    run: 
+        shell("ln -s {input} {output}"
+              "touch --no-dereference {output}") 
 
 rule Uncompress:
     input: data("{name}.fastq.gz")
