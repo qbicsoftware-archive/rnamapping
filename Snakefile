@@ -292,7 +292,7 @@ rule CutAdapt:
             os.symlink(os.path.abspath(str(input['fastq'][0])), str(output['L']))
             os.symlink(os.path.abspath(str(input['fastq'][1])), str(output['R']))
         else:
-            shell('cutadapt --discard-trimmed -a file:' + input['adapter'] + ' -o ' + output['L'] + ' -p ' + output['R'] + ' ' + ' '.join(input['fastq']))
+            shell('cutadapt --info-file CutAdaptMerge/cut_adapt_log.txt --discard-trimmed -a file:' + input['adapter'] + ' -o ' + output['L'] + ' -p ' + output['R'] + ' ' + ' '.join(input['fastq']))
 
 rule TopHat2:
     #input: lambda w: ['CutAdaptMerge/' + p for p in RUNS[(w['group'], w['prefix'])]]
